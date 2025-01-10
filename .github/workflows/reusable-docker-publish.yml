@@ -7,9 +7,10 @@ on:
       repository:
         required: true
         type: string
-      image_name:
-        required: true
+      tag:
+        required: false
         type: string
+        default: latest
 
 jobs:
   build-and-push:
@@ -33,4 +34,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/DataNXT/${{ inputs.repository }}:${{ inputs.tag }}
+          tags: ghcr.io/datanxt/${{ inputs.repository }}:${{ inputs.tag }}
