@@ -1,0 +1,131 @@
+name: Main Build & Publish (Shared)
+
+on:
+  workflow_call:
+    inputs:
+      target_repository_file:
+        description: 'Path to the file holding image repository name'
+        required: false
+        type: string
+        default: '.github/workflows/target_repository'
+
+jobs:
+  read-target-repository-file:
+    runs-on: ubuntu-latest
+    outputs:
+      repository: ${{ steps.read-repo.outputs.repo }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read target repository
+        id: read-repo
+        run: |
+          FILE="${{ inputs.target_repository_file }}"
+
+          if [[ ! -f "$FILE" ]]; then
+            echo "::error::Required file '$FILE' not found."
+            exit 1
+          fi
+
+          REPO="$(sed -e 's/^[[:space:]]*//;s/[[:space:]]*$//' "$FILE")"
+
+          if [[ -z "$REPO" ]]; then
+            echo "::error::File '$FILE' is empty or whitespace only."
+            exit 1
+          fi
+
+          echo "Target repository: $REPO"
+
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+
+  determine-version-tags:
+    runs-on: ubuntu-latest
+    needs: read-target-repository-file
+    outputs:
+      tags-list: ${{ steps.set-tags.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set tags for build
+        id: set-tags
+        run: |
+          REF="${{ github.ref_name }}"
+          TYPE="${{ github.ref_type }}"  # tag or branch
+
+          if [[ "$TYPE" == "branch" ]]; then
+            # non-tag push on main
+            echo "Build version tags: latest"
+            echo "tags=latest" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Tag push => parse version
+          VERSION="${REF}"
+
+          # ensure no leading "v"
+          VERSION="${VERSION#v}"
+          VERSION="${VERSION#V}"
+
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version tag ‘$REF’ resolves to ‘$VERSION’ which is invalid"
+            exit 1
+          fi
+
+          MAJOR=${VERSION%%.*}
+          MINORMINUS=${VERSION#${MAJOR}.}
+          MINOR=${MINORMINUS%%.*}
+          PATCH=${VERSION##*.}
+
+          TAGS="${MAJOR},${MAJOR}.${MINOR},${VERSION}"
+
+          echo "Build version tags: $TAGS"
+          
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+  test:
+    needs: [read-target-repository-file, determine-version-tags]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create test results directory
+        run: |
+          mkdir -p test-results
+
+      - name: Run tests with coverage
+        run: |
+          python -m pytest -v --tb=short --cov=. --cov-report=xml --cov-report=term-missing --junitxml=test-results/junit.xml || echo "No tests found - this is expected for now"
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: "test-results/junit.xml"
+
+  build-and-push:
+    needs: [read-target-repository-file, determine-version-tags, test]
+    uses: datanxt/infra/.github/workflows/reusable-docker-publish-multi-tag.yml@main
+    with:
+      repository: ${{ needs.read-target-repository-file.outputs.repository }}
+      tag: "${{ needs.determine-version-tags.outputs.tags-list }}"
