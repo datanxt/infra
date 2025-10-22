@@ -103,6 +103,8 @@ jobs:
           echo "| **Repository** | `${REPO}` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Tags**       | `${TAGS}` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "You can pull the image with:" >> $GITHUB_STEP_SUMMARY
-          echo "`docker pull ${REPO}:${TAGS%%,*}`" >> $GITHUB_STEP_SUMMARY
+          echo "You can pull the image with the following command:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${REPO}:${TAGS%%,*}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
