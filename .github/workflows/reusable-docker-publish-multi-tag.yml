@@ -103,8 +103,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Field       | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Repository** | `${REPO}` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Tags**       | `${TAGS_RAW}` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Repository** | \`${REPO}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tags**       | \`${TAGS_RAW}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "You can pull the images with the following commands:" >> $GITHUB_STEP_SUMMARY
           
