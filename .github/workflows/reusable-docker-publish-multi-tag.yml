@@ -94,17 +94,25 @@ jobs:
 
       - name: Publish summary for built image
         run: |
-          TAGS="${{ inputs.tag }}"
           REPO="${{ inputs.registry }}/${{ inputs.organization }}/${{ inputs.repository }}"
-          echo "### ✅ Docker Image Built & Pushed" >> $GITHUB_STEP_SUMMARY
+          TAGS_RAW="${{ inputs.tag }}"
+          # Convert comma-separated into array
+          IFS=',' read -ra TAG_LIST <<< "$TAGS_RAW"
+          
+          echo "### ✅ Docker Images Built & Pushed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Repository** | \`${REPO}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Tags**       | \`${TAGS}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Field       | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Repository** | `${REPO}` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tags**       | `${TAGS_RAW}` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "You can pull the image with the following command:" >> $GITHUB_STEP_SUMMARY
-          echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "docker pull ${REPO}:${TAGS%%,*}" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "You can pull the images with the following commands:" >> $GITHUB_STEP_SUMMARY
+          
+          for tag in "${TAG_LIST[@]}"; do
+            # Trim whitespace if needed
+            trimmed_tag="$(echo "$tag" | xargs)"
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${REPO}:${trimmed_tag}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          done
 
