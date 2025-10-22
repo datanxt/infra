@@ -25,6 +25,7 @@ jobs:
 
           if [[ ! -f "$FILE" ]]; then
             echo "::error::Required file '$FILE' not found."
+            echo "Required file $FILE not found" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
@@ -32,10 +33,11 @@ jobs:
 
           if [[ -z "$REPO" ]]; then
             echo "::error::File '$FILE' is empty or whitespace only."
+            echo "File $FILE is empty or whitespace only" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
-          echo "Target repository: $REPO"
+          echo "Target repository: $REPO" >> $GITHUB_STEP_SUMMARY
 
           echo "repo=$REPO" >> $GITHUB_OUTPUT
 
@@ -53,6 +55,7 @@ jobs:
         run: |
           DATE_TAG="$(date +%Y-%m-%d)"
 
+          echo "Date tag: $DATE_TAG" >> $GITHUB_STEP_SUMMARY
           echo "tag=$DATE_TAG" >> $GITHUB_OUTPUT
 
   test:
