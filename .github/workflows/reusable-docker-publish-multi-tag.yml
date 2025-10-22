@@ -92,7 +92,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Log success
+      - name: Publish summary for built image
         run: |
-          echo "✅ Successfully built and pushed ${{ steps.parse-tags.outputs.tag-count }} image(s):"
-          echo "${{ steps.parse-tags.outputs.tags }}" | tr ',' '\n' | sed 's/^/  - /' 
+          TAGS="${{ inputs.tag }}"
+          REPO="${{ inputs.registry }}/${{ inputs.organization }}/${{ inputs.repository }}"
+          echo "### ✅ Docker Image Built & Pushed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Repository** | `${REPO}` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tags**       | `${TAGS}` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "You can pull the image with:" >> $GITHUB_STEP_SUMMARY
+          echo "`docker pull ${REPO}:${TAGS%%,*}`" >> $GITHUB_STEP_SUMMARY
+
