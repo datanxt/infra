@@ -25,7 +25,7 @@ jobs:
 
           if [[ ! -f "$FILE" ]]; then
             echo "::error::Required file '$FILE' not found."
-            echo "Required file $FILE not found" >> $GITHUB_STEP_SUMMARY
+            echo "Required file \`$FILE\` not found" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
@@ -33,11 +33,11 @@ jobs:
 
           if [[ -z "$REPO" ]]; then
             echo "::error::File '$FILE' is empty or whitespace only."
-            echo "File $FILE is empty or whitespace only" >> $GITHUB_STEP_SUMMARY
+            echo "File \`$FILE\` is empty or whitespace only" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
-          echo "Target repository: $REPO" >> $GITHUB_STEP_SUMMARY
+          echo "Target repository: \`$REPO\`" >> $GITHUB_STEP_SUMMARY
 
           echo "repo=$REPO" >> $GITHUB_OUTPUT
 
@@ -58,7 +58,7 @@ jobs:
 
           if [[ "$TYPE" == "branch" ]]; then
             # non-tag push on main
-            echo "Docker image tag: latest" >> $GITHUB_STEP_SUMMARY
+            echo "Docker image tag: \`latest\`" >> $GITHUB_STEP_SUMMARY
             echo "tags=latest" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -72,7 +72,7 @@ jobs:
 
           if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Version tag ‘$REF’ resolves to ‘$VERSION’ which is invalid"
-            echo "Invalid version tag: $REF resolves to $VERSION" >> $GITHUB_STEP_SUMMARY
+            echo "Invalid version tag: \`$REF\` resolves to \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
@@ -83,7 +83,7 @@ jobs:
 
           TAGS="${MAJOR},${MAJOR}.${MINOR},${VERSION}"
 
-          echo "Docker image tags: $TAGS" >> $GITHUB_STEP_SUMMARY
+          echo "Docker image tags: \`$TAGS\`" >> $GITHUB_STEP_SUMMARY
           
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
