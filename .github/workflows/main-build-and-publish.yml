@@ -103,7 +103,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements-test.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -111,6 +111,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          if [ -f requirements-test.txt ]; then
+            echo "Found requirements-test.txt, installing test dependencies..."
+            pip install -r requirements-test.txt
+          else
+            echo "No requirements-test.txt found, skipping test dependencies"
+          fi
 
       - name: Create test results directory
         run: |
