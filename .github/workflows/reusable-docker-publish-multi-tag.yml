@@ -28,6 +28,23 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
+      # GitHub-hosted runners ship with ~25 GB of preinstalled tooling
+      # (Android SDK, .NET, Haskell, CodeQL, large apt packages, swap)
+      # that no Docker build in this org needs.  Reclaiming it up front
+      # gives `docker buildx` ~30+ GB of free space, which is required
+      # for services whose image export size approaches the runner's
+      # default ~14 GB disk budget (e.g. GPU services bundling torch +
+      # cuDNN + cuBLAS wheels).  Costs ~2 minutes per build.
+      - name: Free disk space on runner
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
