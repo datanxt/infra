@@ -124,13 +124,14 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          python -m pytest -v --tb=short --cov=. --cov-report=xml --cov-report=term-missing --junitxml=test-results/junit.xml || echo "No tests found - this is expected for now"
-
+          python -m pytest -v --tb=short --cov=. --cov-report=xml --cov-report=term-missing --junitxml=test-results/junit.xml
+      
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: always() && hashFiles('test-results/junit.xml') != ''
         with:
-          files: "test-results/junit.xml"
+          files: test-results/junit.xml
+          compare_to_earlier_commit: false
 
   build-and-push:
     needs: [read-target-repository-file, determine-version-tags, test]
