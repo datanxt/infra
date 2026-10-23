@@ -50,6 +50,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import os
 import random
 import re
 import subprocess
@@ -319,8 +320,10 @@ def purge_document(cfg: dict, doc_env: dict[str, str], doc_id: str, *, execute: 
     # standalone, the live hybrid v2.6 one milvus_service uses is on 19531.
     try:
         from pymilvus import Collection, connections, utility  # lazy: not needed for plain re-drives
-        host = doc_env.get("MILVUS_HOST", "localhost")
-        port = doc_env.get("MILVUS_PORT", "19531")
+        # The process environment wins, so an operator can point the purge at an SSH
+        # tunnel without editing a captured .env (see the tunnel recipe at the top).
+        host = os.environ.get("MILVUS_HOST") or doc_env.get("MILVUS_HOST", "localhost")
+        port = os.environ.get("MILVUS_PORT") or doc_env.get("MILVUS_PORT", "19531")
         connections.connect(alias="redrive", host=host, port=port)
         report["milvus_target"] = f"{host}:{port}"
         found_any = False
